@@ -1,0 +1,20 @@
+{
+    "name": "exercise-13",
+    "version": "1.0.0",
+    "description": "",
+    "main": "exercise-13.js",
+    "scripts": {
+        "test": "jest"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "devDependencies": {
+        "jest": "^29.5.0",
+        "nodemon": "^2.0.21",
+        "supertest": "^6.3.3"
+    },
+    "dependencies": {
+        "express": "^4.18.2"
+    }
+}
