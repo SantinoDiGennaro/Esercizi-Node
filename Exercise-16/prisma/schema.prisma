@@ -9,9 +9,9 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
-model Database{
-  id          Int       @id @default(autoincrement())
-  name        String    @db.VarChar(255)
-  last_name   String    @db.VarChar(255)
-  mail        String    @db.VarChar(255)
+model database{
+  id              Int         @id @default(autoincrement())
+  name            String      @db.VarChar(255)
+  last_name       String      @db.VarChar(255)
+  email           String      @db.VarChar(255)
 }
