@@ -1,11 +1,13 @@
 import express from "express";
 import "express-async-errors";
+import cors from "cors";
 import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
-const app = express();
 
+const app = express();
 app.use(express.json());
+app.use(cors());
 
 app.get("/data", async (req, res) => {
     const data = await prisma.database.findMany();
