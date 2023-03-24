@@ -2,7 +2,29 @@ import express from "express";
 import "express-async-errors";
 import cors from "cors";
 import { PrismaClient } from "@prisma/client";
+import multer from "multer";
+import { randomUUID } from "node:crypto";
+import mime from "mime";
 
+const generatePhotoFilename = (mimeType) => {
+    const randomFilename = `${randomUUID()}.${Date.now()}`;
+    const fileExtension = mime.getExtension(mimeType);
+    const filename = `${randomFilename}.${fileExtension}`;
+    return filename;
+};
+
+const multerOptions = {};
+
+const storage = multer.diskStorage({
+    destination: "upload/",
+    filename: (req, file, callback) => {
+        return callback(null, generatePhotoFilename(file.mimetype));
+    },
+});
+
+const upload = () => {
+    return multer({ storage, ...multerOptions });
+};
 const prisma = new PrismaClient();
 
 const app = express();
@@ -61,5 +83,19 @@ app.delete("/data/:id", async (req, res, next) => {
         next(`Cannot DELETE /data/${dataId}`);
     }
 });
+
+app.post(
+    "/data/:id/photo",
+    upload().single("photo"),
+    async (req, res, next) => {
+        console.log("request.file", req.file);
+        if (!req.file) {
+            res.status(400);
+            return next("No photo file uploaded");
+        }
+        const photoFilename = req.file.filename;
+        res.status(201).json({ photoFilename });
+    }
+);
 
 export default app;
