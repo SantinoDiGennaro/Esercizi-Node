@@ -13,7 +13,25 @@ const generatePhotoFilename = (mimeType) => {
     return filename;
 };
 
-const multerOptions = {};
+const MAX_SIZE_IN_MEGABYTES = 6 * 1024 * 1024;
+const VALID_MINE_TYPES = ["image/png", "image.jpeg"];
+
+const fileFilter = (req, file, callback) => {
+    if (VALID_MINE_TYPES.includes(file.mimeType)) {
+        callback(null, true);
+    } else {
+        callback(
+            new Error("Erro: The uploaded file must bu a JPG or a PNG image.")
+        );
+    }
+};
+
+const multerOptions = {
+    fileFilter,
+    limits: {
+        fileSize: MAX_SIZE_IN_MEGABYTES,
+    },
+};
 
 const storage = multer.diskStorage({
     destination: "upload/",
@@ -25,6 +43,7 @@ const storage = multer.diskStorage({
 const upload = () => {
     return multer({ storage, ...multerOptions });
 };
+
 const prisma = new PrismaClient();
 
 const app = express();
