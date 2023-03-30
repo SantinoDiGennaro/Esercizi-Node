@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+    <body>
+        <p>
+            <a href="http://localhost:3000/auth/login?redirectTo=http://localhost:8080/add">Login</a>
+        </p>
+        <form action="http://localhost:3000/data" id="form-add">
+            <label>
+                <strong>Name:</strong>
+                <input type="text" name="name" />
+            </label>
+
+            <label>
+                <strong>Last name:</strong>
+                <input type="text" name="last_name" />
+            </label>
+
+            <label>
+                <strong>Mail:</strong>
+                <input type="email" name="email" />
+            </label>
+
+            <input type="submit" />
+        </form>
+
+        <script>
+            const addData = async (event) => {
+                event.preventDefault();
+
+                const form = event.currentTarget;
+
+                const formData = new FormData(form);
+                const plainFormData = Object.fromEntries(formData.entries());
+                const formDataJsonString = JSON.stringify(plainFormData);
+
+                const url = form.action;
+
+                const res = await fetch(url, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: formDataJsonString,
+                    credentials: "include"
+                });
+
+                const data = await res.json();
+                console.dir(data);
+            };
+
+            const addForm = document.querySelector("#form-add");
+
+            addForm.addEventListener("submit", addData);
+        </script>
+    </body>
+</html>

@@ -1,20 +1,17 @@
-const express = require("express");
-import "express-async-errors";
-const cors = require("cors");
+import express, { Router } from "express";
 
-import prisma from "./lib/prisma/prisma";
-import { upload } from "./lib/middleware/multer";
+import prisma from "../lib/prisma/prisma";
+import { upload } from "../lib/middleware/multer";
+import { checkAuthorization } from "../lib/middleware/passport";
 
-const app = express();
-app.use(express.json());
-app.use(cors());
+const router = Router();
 
-app.get("/data", async (req, res) => {
+router.get("/", async (req, res) => {
     const data = await prisma.database.findMany();
     res.json(data);
 });
 
-app.get("/data/:id", async (req, res, next) => {
+router.get("/:id", async (req, res, next) => {
     const dataId = Number(req.params.id);
     const data = await prisma.database.findUnique({
         where: { id: dataId },
@@ -26,21 +23,31 @@ app.get("/data/:id", async (req, res, next) => {
     res.json(data);
 });
 
-app.post("/data", async (req, res) => {
+router.post("/", checkAuthorization, async (req, res) => {
     const datas = req.body;
+    const username = req.user?.username as string;
+
     const data = await prisma.database.create({
-        data: datas,
+        data: {
+            ...datas,
+            createdBy: username,
+            updatedBy: username,
+        },
     });
     res.status(201).json(data);
 });
 
-app.put("/data/:id", async (req, res, next) => {
+router.put("/:id", checkAuthorization, async (req, res, next) => {
     const dataId = Number(req.params.id);
     const datas = req.body;
+    const username = req.user?.username as string;
     try {
         const data = await prisma.database.update({
             where: { id: dataId },
-            data: datas,
+            data: {
+                ...datas,
+                updatedBy: username,
+            },
         });
         res.status(200).json(data);
     } catch (error) {
@@ -49,7 +56,7 @@ app.put("/data/:id", async (req, res, next) => {
     }
 });
 
-app.delete("/data/:id", async (req, res, next) => {
+router.delete("/:id", checkAuthorization, async (req, res, next) => {
     const dataId = Number(req.params.id);
     try {
         await prisma.database.delete({
@@ -62,8 +69,9 @@ app.delete("/data/:id", async (req, res, next) => {
     }
 });
 
-app.post(
-    "/data/:id/photo",
+router.post(
+    "/:id/photo",
+    checkAuthorization,
     upload().single("photo"),
     async (req, res, next) => {
         console.log("request.file", req.file);
@@ -76,4 +84,4 @@ app.post(
     }
 );
 
-export default app;
+export default router;

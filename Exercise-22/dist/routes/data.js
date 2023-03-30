@@ -3,19 +3,16 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const express = require("express");
-require("express-async-errors");
-const cors = require("cors");
-const prisma_1 = __importDefault(require("./lib/prisma/prisma"));
-const multer_1 = require("./lib/middleware/multer");
-const app = express();
-app.use(express.json());
-app.use(cors());
-app.get("/data", async (req, res) => {
+const express_1 = require("express");
+const prisma_1 = __importDefault(require("../lib/prisma/prisma"));
+const multer_1 = require("../lib/middleware/multer");
+const passport_1 = require("../lib/middleware/passport");
+const router = (0, express_1.Router)();
+router.get("/", async (req, res) => {
     const data = await prisma_1.default.database.findMany();
     res.json(data);
 });
-app.get("/data/:id", async (req, res, next) => {
+router.get("/:id", async (req, res, next) => {
     const dataId = Number(req.params.id);
     const data = await prisma_1.default.database.findUnique({
         where: { id: dataId },
@@ -26,20 +23,29 @@ app.get("/data/:id", async (req, res, next) => {
     }
     res.json(data);
 });
-app.post("/data", async (req, res) => {
+router.post("/", passport_1.checkAuthorization, async (req, res) => {
     const datas = req.body;
+    const username = req.user?.username;
     const data = await prisma_1.default.database.create({
-        data: datas,
+        data: {
+            ...datas,
+            createdBy: username,
+            updatedBy: username,
+        },
     });
     res.status(201).json(data);
 });
-app.put("/data/:id", async (req, res, next) => {
+router.put("/:id", passport_1.checkAuthorization, async (req, res, next) => {
     const dataId = Number(req.params.id);
     const datas = req.body;
+    const username = req.user?.username;
     try {
         const data = await prisma_1.default.database.update({
             where: { id: dataId },
-            data: datas,
+            data: {
+                ...datas,
+                updatedBy: username,
+            },
         });
         res.status(200).json(data);
     }
@@ -48,7 +54,7 @@ app.put("/data/:id", async (req, res, next) => {
         next(`Cannot PUT /data/${dataId}`);
     }
 });
-app.delete("/data/:id", async (req, res, next) => {
+router.delete("/:id", passport_1.checkAuthorization, async (req, res, next) => {
     const dataId = Number(req.params.id);
     try {
         await prisma_1.default.database.delete({
@@ -61,7 +67,7 @@ app.delete("/data/:id", async (req, res, next) => {
         next(`Cannot DELETE /data/${dataId}`);
     }
 });
-app.post("/data/:id/photo", (0, multer_1.upload)().single("photo"), async (req, res, next) => {
+router.post("/:id/photo", passport_1.checkAuthorization, (0, multer_1.upload)().single("photo"), async (req, res, next) => {
     console.log("request.file", req.file);
     if (!req.file) {
         res.status(400);
@@ -70,5 +76,5 @@ app.post("/data/:id/photo", (0, multer_1.upload)().single("photo"), async (req, 
     const photoFilename = req.file.filename;
     res.status(201).json({ photoFilename });
 });
-exports.default = app;
-//# sourceMappingURL=app.js.map
+exports.default = router;
+//# sourceMappingURL=data.js.map

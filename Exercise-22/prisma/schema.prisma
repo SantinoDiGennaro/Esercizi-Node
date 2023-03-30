@@ -14,4 +14,6 @@ model database{
   name            String      @db.VarChar(255)
   last_name       String      @db.VarChar(255)
   email           String      @db.VarChar(255)
+  createdBy       String?     @db.VarChar(255)
+  updatedBy       String?     @db.VarChar(255)
 }
